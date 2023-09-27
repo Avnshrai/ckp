@@ -4,10 +4,10 @@ env:
 on: [ workflow_dispatch ]
 jobs:
   script:
-    runs-on: ubuntu-latest
-    #runs-on:
-      #- self-hosted
-      #- label-1
+    # runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - ckp
     name: clone and create deb
     steps:
       - name: Checkout
