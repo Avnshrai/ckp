@@ -1,7 +1,7 @@
 name: Version Check
 env:
   VERSION: "1.28.0"
-on: [ workflow_dispatch ]
+on: push
 jobs:
   script:
     #runs-on: ubuntu-latest
