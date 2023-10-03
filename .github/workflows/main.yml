@@ -4,7 +4,7 @@ env:
 on: [ workflow_dispatch ]
 jobs:
   script:
-    # runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
     runs-on:
       - self-hosted
       - ckp
@@ -15,13 +15,8 @@ jobs:
         with:
           repository: 'kubernetes/kubernetes'
       - name: Installing make
-        run: sudo apt install make dpkg
-      
-      # - name: cache_kubernetes
-      #   uses: actions/cache@v3
-      #   with: 
-      #     path: 
-      
+        run: sudo apt install make dpkg -y
+        
       - name: exporting env's and building deb's
         run:  |  
           export KUBE_GIT_MAJOR=1
@@ -30,85 +25,71 @@ jobs:
           export KUBE_GIT_VERSION='v1.28.0-ckp'
           export KUBE_GIT_TREE_STATE='clean'
           make quick-release
-          ./_output/dockerized/bin/linux/amd64/kubeadm 
+          ./_output/dockerized/bin/linux/amd64/kubeadm version
 
+
+      - name: signing the binaries
+        shell: bash
+        run: | 
+          sudo gpg --list-keys
+          sudo gpg --detach-sign _output/dockerized/bin/linux/amd64/kubeadm
+          sudo gpg --detach-sign _output/dockerized/bin/linux/amd64/kubelet
       - name: Making Kubeadm Deb packages
         shell: bash
         run: |
-          mkdir -p kubeadm_1.28.0_amd64/usr/bin         
-          mkdir -p kubeadm_1.28.0_amd64/DEBIAN
-          cp _output/dockerized/bin/linux/amd64/kubeadm kubeadm_1.28.0_amd64/usr/bin/.
-          sudo chmod +x kubeadm_1.28.0_amd64/usr/bin/*
-          touch kubeadm_1.28.0_amd64/DEBIAN/control 
-          cat <<EOF > kubeadm_1.28.0_amd64/DEBIAN/control
-          Package: kubeadmckp
-          Version: 1.28.0
-          Maintainer: coredgeio 
-          Depends: libc6
-          Architecture: amd64
-          Description: kubeadm binary installation 
-          EOF
-          dpkg --build kubeadm_1.28.0_amd64
-
-
+          sudo mkdir -p kubeadm_1.28.0-00_amd64/usr/bin         
+          sudo mkdir -p kubeadm_1.28.0-00_amd64/DEBIAN
+          sudo cp _output/dockerized/bin/linux/amd64/kubeadm kubeadm_1.28.0-00_amd64/usr/bin/.
+          sudo chmod +x kubeadm_1.28.0-00_amd64/usr/bin/*
+          sudo touch kubeadm_1.28.0-00_amd64/DEBIAN/control 
+          sudo cat <<EOF > kubeadm_1.28.0-00_amd64/DEBIAN/control
+           Package: kubeadmckp
+           Version: 1.28.0
+           Maintainer: coredgeio 
+           Depends: libc6
+           Architecture: amd64
+           Description: kubeadm binary installation 
+           EOF
+          sudo dpkg --build kubeadm_1.28.0-00_amd64
       - name: Making Kubelet Deb packages
         shell: bash
         run: |
-          mkdir -p kubelet_1.28.0_amd64/usr/bin
+          sudo mkdir -p kubelet_1.28.0-00_amd64/usr/bin
           
-          mkdir -p kubelet_1.28.0_amd64/DEBIAN
-          mkdir -p kubelet_1.28.0_amd64/etc/systemd/system
-
-          cp _output/dockerized/bin/linux/amd64/kubelet kubelet_1.28.0_amd64/usr/bin/.
-          sudo chmod +x  kubelet_1.28.0_amd64/usr/bin/*
-          touch kubelet_1.28.0_amd64/DEBIAN/control 
-          cat <<EOF > kubelet_1.28.0_amd64/DEBIAN/control
-          Package: kubeletckp 
-          Version: 1.28.0
-          Maintainer: coredgeio 
-          Depends: libc6
-          Architecture: amd64
-          Description: kubelet binary installation 
+          sudo mkdir -p kubelet_1.28.0-00_amd64/DEBIAN
+          sudo mkdir -p kubelet_1.28.0-00_amd64/etc/systemd/system
+          sudo cp _output/dockerized/bin/linux/amd64/kubelet kubelet_1.28.0-00_amd64/usr/bin/.
+          sudo chmod +x  kubelet_1.28.0-00_amd64/usr/bin/*
+          sudo touch kubelet_1.28.0-00_amd64/DEBIAN/control 
+          sudo cat <<EOF > kubelet_1.28.0-00_amd64/DEBIAN/control
+           Package: kubeletckp 
+           Version: 1.28.0
+           Maintainer: coredgeio 
+           Depends: libc6
+           Architecture: amd64
+           Description: kubelet binary installation 
           EOF
-          touch kubelet_1.28.0_amd64/etc/systemd/system/kubelet.service
-          touch kubelet_1.28.0_amd64/etc/systemd/system/rules
-
-          cat <<EOF > kubelet_1.28.0_amd64/etc/systemd/system/kubelet.service
-          [Unit]
-          #Description=kubelet service
-          Description=kubelet: The Kubernetes Node Agent
-          Documentation=https://kubernetes.io/docs/home/
-          #StartLimitIntervalSec=0
-          Wants=network-online.target
-          After=network-online.target
-
-          [Service]
-          Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
-          Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
-          # This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
-          EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
-          # This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use
-          # the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
-          EnvironmentFile=-/etc/default/kubelet
-          ExecStart=
-          ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS
-
-          [Install]
-          WantedBy=multi-user.target
-          EOF
+          sudo touch kubelet_1.28.0-00_amd64/etc/systemd/system/kubelet.service
+          sudo touch kubelet_1.28.0-00_amd64/etc/systemd/system/rules
+          sudo cat <<EOF > kubelet_1.28.0-00_amd64/etc/systemd/system/kubelet.service
+           [Unit]
+           #Description=kubelet service
+           Description=kubelet: The Kubernetes Node Agent
+           WantedBy=multi-user.target
+           EOF
           
-          cat <<EOF > kubelet_1.28.0_amd64/etc/systemd/system/rules
-          #!/usr/bin/make -f 
-          %:
-            dh @ --with=systemd
-          override_dh_installinit:
-            dh_installinit --name=kubelet.service
-          EOF
-          dpkg --build kubelet_1.28.0_amd64
+          sudo cat <<EOF > kubelet_1.28.0-00_amd64/etc/systemd/system/rules
+           #!/usr/bin/make -f 
+           %:
+             dh @ --with=systemd
+           override_dh_installinit:
+             dh_installinit --name=kubelet.service
+           EOF
+          sudo dpkg --build kubelet_1.28.0-00_amd64
       - name: upload_artifacts
         uses: actions/upload-artifact@v3
         with: 
           name: debpackage
           path: |
-            kubeadm_1.28.0_amd64.deb
-            kubelet_1.28.0_amd64.deb
+            kubeadm_1.28.0-00_amd64.deb
+            kubelet_1.28.0-00_amd64.deb
