@@ -7,7 +7,7 @@ jobs:
     # runs-on: ubuntu-latest
     runs-on:
       - self-hosted
-      - ckp
+      - label-1
     name: clone and create deb
     steps:
       - name: Checkout
@@ -31,14 +31,12 @@ jobs:
           ./_output/dockerized/bin/linux/amd64/kubeadm version
 
 
-       - name: signing the binaries
-         shell: bash
-         run: | 
-           GPG_TTY=$(tty)
-           export GPG_TTY
-           sudo gpg --list-keys
-           sudo gpg --detach-sign _output/dockerized/bin/linux/amd64/kubeadm
-           sudo gpg --detach-sign _output/dockerized/bin/linux/amd64/kubelet
+      - name: signing the binaries
+        shell: bash
+        run: | 
+          sudo gpg --list-keys
+          sudo gpg --detach-sign _output/dockerized/bin/linux/amd64/kubeadm
+          sudo gpg --detach-sign _output/dockerized/bin/linux/amd64/kubelet
       - name: Making Kubeadm Deb packages
         shell: bash
         run: |
