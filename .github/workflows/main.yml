@@ -1,10 +1,10 @@
-name: Version Check
+name: Added apt repo
 env:
   VERSION: "1.28.0"
 on: [ workflow_dispatch ]
 jobs:
   script:
-    # runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
     runs-on:
       - self-hosted
       - ckp
@@ -25,28 +25,30 @@ jobs:
           export KUBE_GIT_VERSION='v${{ env.VERSION }}-ckp'
           export KUBE_GIT_TREE_STATE='clean'
           echo v${{ env.VERSION }}-ckp
-          sudo mkdir -p kubeadm_${{ env.VERSION }}-00_amd64/usr/bin 
-          echo kubeadm_${{ env.VERSION }}-00_amd64
+          # mkdir -p kubeadm_${{ env.VERSION }}-00_amd64/usr/bin 
+          # echo kubeadm_${{ env.VERSION }}-00_amd64
           make quick-release
           ./_output/dockerized/bin/linux/amd64/kubeadm version
-
-
+          
       - name: signing the binaries
         shell: bash
         run: | 
-          sudo gpg --list-keys
-          sudo gpg --detach-sign _output/dockerized/bin/linux/amd64/kubeadm
-          sudo gpg --detach-sign _output/dockerized/bin/linux/amd64/kubelet
+          # GPG_TTY=$(tty)
+          # export GPG_TTY
+          gpg --list-keys --no-tty
+          gpg --pinentry-mode loopback --detach-sign _output/dockerized/bin/linux/amd64/kubeadm 
+          gpg --pinentry-mode loopback --detach-sign _output/dockerized/bin/linux/amd64/kubelet 
       - name: Making Kubeadm Deb packages
         shell: bash
         run: |
-          sudo mkdir -p kubeadm_${{ env.VERSION }}-00_amd64/usr/bin 
-          echo kubeadm_${{ env.VERSION }}-00_amd64
-          sudo mkdir -p kubeadm_${{ env.VERSION }}-00_amd64/DEBIAN
-          sudo cp _output/dockerized/bin/linux/amd64/kubeadm kubeadm_${{ env.VERSION }}-00_amd64/usr/bin/.
-          sudo chmod +x kubeadm_${{ env.VERSION }}-00_amd64/usr/bin/*
-          sudo touch kubeadm_${{ env.VERSION }}-00_amd64/DEBIAN/control 
-          sudo cat <<EOF > kubeadm_${{ env.VERSION }}-00_amd64/DEBIAN/control
+           mkdir -p kubeadm_${{ env.VERSION }}-00_amd64/usr/bin 
+           
+           echo kubeadm_${{ env.VERSION }}-00_amd64
+           mkdir -p kubeadm_${{ env.VERSION }}-00_amd64/DEBIAN
+           cp _output/dockerized/bin/linux/amd64/kubeadm kubeadm_${{ env.VERSION }}-00_amd64/usr/bin/.
+           chmod +x kubeadm_${{ env.VERSION }}-00_amd64/usr/bin/*
+           touch kubeadm_${{ env.VERSION }}-00_amd64/DEBIAN/control 
+           cat <<EOF > kubeadm_${{ env.VERSION }}-00_amd64/DEBIAN/control
            Package: kubeadmckp
            Version: ${{ env.VERSION }}
            Maintainer: coredgeio 
@@ -54,42 +56,118 @@ jobs:
            Architecture: amd64
            Description: kubeadm binary installation 
            EOF
-          sudo dpkg --build kubeadm_${{ env.VERSION }}-00_amd64
+           dpkg --build kubeadm_${{ env.VERSION }}-00_amd64
       - name: Making Kubelet Deb packages
         shell: bash
         run: |
-          sudo mkdir -p kubelet_${{ env.VERSION }}-00_amd64/usr/bin
+           mkdir -p kubelet_${{ env.VERSION }}-00_amd64/usr/bin
           
-          sudo mkdir -p kubelet_${{ env.VERSION }}-00_amd64/DEBIAN
-          sudo mkdir -p kubelet_${{ env.VERSION }}-00_amd64/etc/systemd/system
-          sudo cp _output/dockerized/bin/linux/amd64/kubelet kubelet_${{ env.VERSION }}-00_amd64/usr/bin/.
-          sudo chmod +x  kubelet_${{ env.VERSION }}-00_amd64/usr/bin/*
-          sudo touch kubelet_${{ env.VERSION }}-00_amd64/DEBIAN/control 
-          sudo cat <<EOF > kubelet_${{ env.VERSION }}-00_amd64/DEBIAN/control
+           mkdir -p kubelet_${{ env.VERSION }}-00_amd64/DEBIAN
+           mkdir -p kubelet_${{ env.VERSION }}-00_amd64/etc/systemd/system
+           cp _output/dockerized/bin/linux/amd64/kubelet kubelet_${{ env.VERSION }}-00_amd64/usr/bin/.
+           chmod +x  kubelet_${{ env.VERSION }}-00_amd64/usr/bin/*
+           touch kubelet_${{ env.VERSION }}-00_amd64/DEBIAN/control 
+           cat <<EOF > kubelet_${{ env.VERSION }}-00_amd64/DEBIAN/control
            Package: kubeletckp 
            Version: ${{ env.VERSION }}
            Maintainer: coredgeio 
            Depends: libc6
            Architecture: amd64
            Description: kubelet binary installation 
-          EOF
-          sudo touch kubelet_${{ env.VERSION }}-00_amd64/etc/systemd/system/kubelet.service
-          sudo touch kubelet_${{ env.VERSION }}-00_amd64/etc/systemd/system/rules
-          sudo cat <<EOF > kubelet_${{ env.VERSION }}-00_amd64/etc/systemd/system/kubelet.service
+           EOF
+           touch kubelet_${{ env.VERSION }}-00_amd64/etc/systemd/system/kubelet.service
+           touch kubelet_${{ env.VERSION }}-00_amd64/etc/systemd/system/rules
+           cat <<EOF > kubelet_${{ env.VERSION }}-00_amd64/etc/systemd/system/kubelet.service
            [Unit]
            #Description=kubelet service
            Description=kubelet: The Kubernetes Node Agent
            WantedBy=multi-user.target
            EOF
           
-          sudo cat <<EOF > kubelet_${{ env.VERSION }}-00_amd64/etc/systemd/system/rules
+           cat <<EOF > kubelet_${{ env.VERSION }}-00_amd64/etc/systemd/system/rules
            #!/usr/bin/make -f 
            %:
              dh @ --with=systemd
            override_dh_installinit:
              dh_installinit --name=kubelet.service
            EOF
-          sudo dpkg --build kubelet_${{ env.VERSION }}-00_amd64
+           dpkg --build kubelet_${{ env.VERSION }}-00_amd64
+      
+      - name: signing deb packages
+        shell: bash
+        run: |
+          apt-get install dpkg-sig
+          # GPG_TTY=$(tty)
+          # export GPG_TTY
+          dpkg-sig -k coredgeio --sign builder kubeadm_${{ env.VERSION }}-00_amd64.deb
+          dpkg-sig -k coredgeio --sign builder kubelet_${{ env.VERSION }}-00_amd64.deb 
+          dpkg-sig --verify kubeadm_${{ env.VERSION }}-00_amd64.deb
+          dpkg-sig --verify kubelet_${{ env.VERSION }}-00_amd64.deb 
+          
+          #gpg -u A36B28D6A8E0FADA0FA759491FD5C19F325EE055 -b kubeadm_${{ env.VERSION }}-00_amd64.deb 
+          #gpg -u A36B28D6A8E0FADA0FA759491FD5C19F325EE055 -b kubelet_${{ env.VERSION }}-00_amd64.deb 
+          #gpg --verify kubeadm_${{ env.VERSION }}-00_amd64.deb.sig kubeadm_${{ env.VERSION }}-00_amd64.deb 
+          #gpg --verify kubelet_${{ env.VERSION }}-00_amd64.deb.sig kubelet_${{ env.VERSION }}-00_amd64.deb 
+      - name: Creating repo
+        shell: bash
+        run: |
+          mkdir -p /home/core/example/apt-repo/pool/main/
+          cp /home/core/actions-runner/_work/Linux_scripts/Linux_scripts/kubeadm_${{ env.VERSION }}-00_amd64.deb /home/core/example/apt-repo/pool/main/.
+          mkdir -p /home/core/example/apt-repo/dists/stable/main/binary-amd64
+          cd /home/core/example/apt-repo
+          dpkg-scanpackages --arch amd64 /home/core/example/apt-repo/pool/ > dists/stable/main/binary-amd64/Packages
+          cat /home/core/example/apt-repo/dists/stable/main/binary-amd64/Packages | gzip -9 >  dists/stable/main/binary-amd64/Packages.gz
+          echo "Package: kubeadm
+          Version: ${{ env.VERSION }}
+          Architecture: amd64
+          Maintainer: coredge.io
+          Depends: libc6
+          Filename: pool/main/kubeadm_${{ env.VERSION }}-00_amd64.deb 
+          Size: 2832
+          MD5sum: 3eba602abba5d6ea2a924854d014f4a7
+          SHA1: e300cabc138ac16b64884c9c832da4f811ea40fb
+          SHA256: 6e314acd7e1e97e11865c11593362c65db9616345e1e34e309314528c5ef19a6
+          Homepage: http://www.coredge.io
+          Description: Ckp kubeadm " >> /home/core/example/apt-repo/dists/stable/main/binary-amd64/Packages
+          echo '#!/bin/sh
+          set -e
+
+          do_hash() {
+              HASH_NAME=$1
+              HASH_CMD=$2
+              echo "${HASH_NAME}:"
+              for f in $(find -type f); do
+                  f=$(echo $f | cut -c3-) # remove ./ prefix
+                  if [ "$f" = "Release" ]; then
+                      continue
+                  fi
+                  echo " $(${HASH_CMD} ${f}  | cut -d" " -f1) $(wc -c $f)"
+              done
+          }
+
+          cat << EOF
+          Origin: Example Repository
+          Label: Example
+          Suite: stable
+          Codename: stable
+          Version: 1.0
+          Architectures: amd64 arm64 arm7
+          Components: main
+          Description: An example software repository
+          Date: $(date -Ru)
+          EOF
+          do_hash "MD5Sum" "md5sum"
+          do_hash "SHA1" "sha1sum"
+          do_hash "SHA256" "sha256sum"
+          ' > /home/core/example/generate-release.sh && chmod +x /home/core/example/generate-release.sh
+          cd /home/core/example/apt-repo/dists/stable
+          /home/core/example/generate-release.sh > Release
+          cd /home/core/example
+          nohup python3 -m http.server 8080 > /dev/null 2>&1 &
+          echo "deb [arch=amd64] http://127.0.0.1:8000/apt-repo stable main" | sudo tee /etc/apt/sources.list.d/example.list
+          
+
+          
       - name: upload_artifacts
         uses: actions/upload-artifact@v3
         with: 
