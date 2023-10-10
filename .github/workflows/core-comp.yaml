@@ -64,16 +64,18 @@ jobs:
         shell: bash
         env: 
            docker_pass: ${{secrets.DOCKER_PASS}}
+           DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE}}
         run: |
           docker login -u avnshrai -p $docker_pass
           docker tag kube-apiserver:v${{ env.VERSION }} avnshrai/kube-apiserver:v${{ env.VERSION }}
           docker tag kube-proxy:v${{ env.VERSION }} avnshrai/kube-proxy:v${{ env.VERSION }}
           docker tag kube-scheduler:v${{ env.VERSION }} avnshrai/kube-scheduler:v${{ env.VERSION }}
           docker tag kube-controller-manager:v${{ env.VERSION }} avnshrai/kube-controller-manager:v${{ env.VERSION }}
-          docker push avnshrai/kube-apiserver:v${{ env.VERSION }}
-          docker push avnshrai/kube-proxy:v${{ env.VERSION }}
-          docker push avnshrai/kube-scheduler:v${{ env.VERSION }}
-          docker push avnshrai/kube-controller-manager:v${{ env.VERSION }}
+          export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE
+          docker trust sign avnshrai/kube-apiserver:v${{ env.VERSION }}
+          docker trust sign avnshrai/kube-proxy:v${{ env.VERSION }}
+          docker trust sign avnshrai/kube-scheduler:v${{ env.VERSION }}
+          docker trust sign avnshrai/kube-controller-manager:v${{ env.VERSION }}
           
           
           
