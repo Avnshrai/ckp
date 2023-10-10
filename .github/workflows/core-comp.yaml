@@ -29,36 +29,36 @@ jobs:
       #     # echo kubeadm_${{ env.VERSION }}-00_amd64
       #     make quick-release
            
-      - name: signing the binaries
-        shell: bash
-        run: | 
-          # GPG_TTY=$(tty)
-          # export GPG_TTY
-          gpg --list-keys --no-tty
-          gpg --pinentry-mode loopback --detach-sign _output/dockerized/bin/linux/amd64/kube-apiserver
-          gpg --pinentry-mode loopback --detach-sign _output/dockerized/bin/linux/amd64/kube-proxy
-          gpg --pinentry-mode loopback --detach-sign _output/dockerized/bin/linux/amd64/kube-controller-manager
-          gpg --pinentry-mode loopback --detach-sign _output/dockerized/bin/linux/amd64/kube-scheduler
+      # - name: signing the binaries
+      #   shell: bash
+      #   run: | 
+      #     # GPG_TTY=$(tty)
+      #     # export GPG_TTY
+      #     gpg --list-keys --no-tty
+      #     gpg --pinentry-mode loopback --detach-sign _output/dockerized/bin/linux/amd64/kube-apiserver
+      #     gpg --pinentry-mode loopback --detach-sign _output/dockerized/bin/linux/amd64/kube-proxy
+      #     gpg --pinentry-mode loopback --detach-sign _output/dockerized/bin/linux/amd64/kube-controller-manager
+      #     gpg --pinentry-mode loopback --detach-sign _output/dockerized/bin/linux/amd64/kube-scheduler
 
       - name: creating docker images
         shell: bash
         run: | 
           echo "FROM ubuntu:latest
           COPY kube-apiserver /usr/local/bin/kube-apiserver
-          ENTRYPOINT [\"/usr/local/bin/kube-apiserver\"]" >> /home/core/kubernetes/_output/dockerized/bin/linux/amd64/kube-apiserver-dockerfile
+          ENTRYPOINT [\"/usr/local/bin/kube-apiserver\"]" >> _output/dockerized/bin/linux/amd64/kube-apiserver-dockerfile
           echo "FROM ubuntu:latest
           COPY kube-proxy /usr/local/bin/kube-proxy
-          ENTRYPOINT [\"/usr/local/bin/kube-proxy\"]" >> /home/core/kubernetes/_output/dockerized/bin/linux/amd64/kube-proxy-dockerfile
+          ENTRYPOINT [\"/usr/local/bin/kube-proxy\"]" >> _output/dockerized/bin/linux/amd64/kube-proxy-dockerfile
           echo "FROM ubuntu:latest
           COPY kube-scheduler /usr/local/bin/kube-scheduler
-          ENTRYPOINT [\"/usr/local/bin/kube-scheduler\"]" >> /home/core/kubernetes/_output/dockerized/bin/linux/amd64/kube-scheduler-dockerfile
+          ENTRYPOINT [\"/usr/local/bin/kube-scheduler\"]" >> _output/dockerized/bin/linux/amd64/kube-scheduler-dockerfile
           echo "FROM ubuntu:latest
           COPY kube-controller-manager /usr/local/bin/kube-controller-manager
-          ENTRYPOINT [\"/usr/local/bin/kube-controller-manager\"]" >> /home/core/kubernetes/_output/dockerized/bin/linux/amd64/kube-controller-manager-dockerfile
-          docker build -f /home/core/kubernetes/_output/dockerized/bin/linux/amd64/kube-apiserver-dockerfile -t kube-apiserver:v${{ env.VERSION }}
-          docker build -f /home/core/kubernetes/_output/dockerized/bin/linux/amd64/kube-proxy-dockerfile -t kube-proxy:v${{ env.VERSION }}
-          docker build -f /home/core/kubernetes/_output/dockerized/bin/linux/amd64/kube-scheduler-dockerfile -t kube-scheduler:v${{ env.VERSION }}
-          docker build -f /home/core/kubernetes/_output/dockerized/bin/linux/amd64/kube-controller-manager-dockerfile -t kube-controller-manager:v${{ env.VERSION }}
+          ENTRYPOINT [\"/usr/local/bin/kube-controller-manager\"]" >> _output/dockerized/bin/linux/amd64/kube-controller-manager-dockerfile
+          docker build -f _output/dockerized/bin/linux/amd64/kube-apiserver-dockerfile -t kube-apiserver:v${{ env.VERSION }}
+          docker build -f _output/dockerized/bin/linux/amd64/kube-proxy-dockerfile -t kube-proxy:v${{ env.VERSION }}
+          docker build -f _output/dockerized/bin/linux/amd64/kube-scheduler-dockerfile -t kube-scheduler:v${{ env.VERSION }}
+          docker build -f _output/dockerized/bin/linux/amd64/kube-controller-manager-dockerfile -t kube-controller-manager:v${{ env.VERSION }}
 
       - name: pushing images to dockerhub
         shell: bash
