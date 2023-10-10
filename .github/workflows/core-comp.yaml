@@ -44,16 +44,16 @@ jobs:
         shell: bash
         run: | 
           echo "FROM ubuntu:latest
-          COPY kube-apiserver /usr/local/bin/kube-apiserver
+          COPY _output/dockerized/bin/linux/amd64/kube-apiserver /usr/local/bin/kube-apiserver
           ENTRYPOINT [\"/usr/local/bin/kube-apiserver\"]" >> _output/dockerized/bin/linux/amd64/kube-apiserver-dockerfile
           echo "FROM ubuntu:latest
-          COPY kube-proxy /usr/local/bin/kube-proxy
+          COPY _output/dockerized/bin/linux/amd64/kube-proxy /usr/local/bin/kube-proxy
           ENTRYPOINT [\"/usr/local/bin/kube-proxy\"]" >> _output/dockerized/bin/linux/amd64/kube-proxy-dockerfile
           echo "FROM ubuntu:latest
-          COPY kube-scheduler /usr/local/bin/kube-scheduler
+          COPY _output/dockerized/bin/linux/amd64/kube-scheduler /usr/local/bin/kube-scheduler
           ENTRYPOINT [\"/usr/local/bin/kube-scheduler\"]" >> _output/dockerized/bin/linux/amd64/kube-scheduler-dockerfile
           echo "FROM ubuntu:latest
-          COPY kube-controller-manager /usr/local/bin/kube-controller-manager
+          COPY _output/dockerized/bin/linux/amd64/kube-controller-manager /usr/local/bin/kube-controller-manager
           ENTRYPOINT [\"/usr/local/bin/kube-controller-manager\"]" >> _output/dockerized/bin/linux/amd64/kube-controller-manager-dockerfile
           docker build -f _output/dockerized/bin/linux/amd64/kube-apiserver-dockerfile -t kube-apiserver:v${{ env.VERSION }} .
           docker build -f _output/dockerized/bin/linux/amd64/kube-proxy-dockerfile -t kube-proxy:v${{ env.VERSION }} .
