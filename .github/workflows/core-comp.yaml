@@ -17,17 +17,17 @@ jobs:
       - name: Installing make
         run: sudo apt install make dpkg -y
         
-      - name: exporting env's and building deb's
-        run:  |  
-          export KUBE_GIT_MAJOR=1
-          export KUBE_GIT_COMMIT='855e7c48de7388eb330da0f8d9d2394ee818fb8d'
-          export KUBE_GIT_MINOR='28'
-          export KUBE_GIT_VERSION='v${{ env.VERSION }}-ckp'
-          export KUBE_GIT_TREE_STATE='clean'
-          echo v${{ env.VERSION }}-ckp
-          # mkdir -p kubeadm_${{ env.VERSION }}-00_amd64/usr/bin 
-          # echo kubeadm_${{ env.VERSION }}-00_amd64
-          make quick-release
+      # - name: exporting env's and building deb's
+      #   run:  |  
+      #     export KUBE_GIT_MAJOR=1
+      #     export KUBE_GIT_COMMIT='855e7c48de7388eb330da0f8d9d2394ee818fb8d'
+      #     export KUBE_GIT_MINOR='28'
+      #     export KUBE_GIT_VERSION='v${{ env.VERSION }}-ckp'
+      #     export KUBE_GIT_TREE_STATE='clean'
+      #     echo v${{ env.VERSION }}-ckp
+      #     # mkdir -p kubeadm_${{ env.VERSION }}-00_amd64/usr/bin 
+      #     # echo kubeadm_${{ env.VERSION }}-00_amd64
+      #     make quick-release
            
       - name: signing the binaries
         shell: bash
