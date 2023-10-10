@@ -66,10 +66,14 @@ jobs:
            docker_pass: ${{secrets.DOCKER_PASS}}
         run: |
           docker login -u avnshrai -p $docker_pass
-          docker push kube-apiserver:v${{ env.VERSION }}
-          docker push kube-proxy:v${{ env.VERSION }}
-          docker push kube-scheduler:v${{ env.VERSION }}
-          docker push kube-controller-manager:v${{ env.VERSION }}
+          docker tag kube-apiserver:v${{ env.VERSION }} avnshrai/kube-apiserver:v${{ env.VERSION }}
+          docker tag kube-proxy:v${{ env.VERSION }} avnshrai/kube-proxy:v${{ env.VERSION }}
+          docker tag kube-scheduler:v${{ env.VERSION }} avnshrai/kube-scheduler:v${{ env.VERSION }}
+          docker tag kube-controller-manager:v${{ env.VERSION }} avnshrai/kube-controller-manager:v${{ env.VERSION }}
+          docker push avnshrai/kube-apiserver:v${{ env.VERSION }}
+          docker push avnshrai/kube-proxy:v${{ env.VERSION }}
+          docker push avnshrai/kube-scheduler:v${{ env.VERSION }}
+          docker push avnshrai/kube-controller-manager:v${{ env.VERSION }}
           
           
           
