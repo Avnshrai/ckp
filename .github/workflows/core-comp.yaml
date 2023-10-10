@@ -76,6 +76,10 @@ jobs:
           docker trust sign avnshrai/kube-proxy:v${{ env.VERSION }}
           docker trust sign avnshrai/kube-scheduler:v${{ env.VERSION }}
           docker trust sign avnshrai/kube-controller-manager:v${{ env.VERSION }}
+          docker push avnshrai/kube-apiserver:v${{ env.VERSION }}
+          docker push avnshrai/kube-proxy:v${{ env.VERSION }}
+          docker push avnshrai/kube-scheduler:v${{ env.VERSION }}
+          docker push avnshrai/kube-controller-manager:v${{ env.VERSION }}
           
           
           
