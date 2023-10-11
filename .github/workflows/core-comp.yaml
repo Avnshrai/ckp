@@ -1,6 +1,6 @@
 name: create core components 
 env:
-  VERSION: "1.28.0"
+  VERSION: "1.26.6"
 on: [ workflow_dispatch ]
 jobs:
   script:
@@ -20,8 +20,8 @@ jobs:
       - name: exporting env's and building deb's
         run:  |  
           export KUBE_GIT_MAJOR=1
-          export KUBE_GIT_COMMIT='855e7c48de7388eb330da0f8d9d2394ee818fb8d'
-          export KUBE_GIT_MINOR='28'
+          export KUBE_GIT_COMMIT='b46a3f887ca979b1a5d14fd39cb1af43e7e5d12d'
+          export KUBE_GIT_MINOR='26'
           export KUBE_GIT_VERSION='v${{ env.VERSION }}-ckp'
           export KUBE_GIT_TREE_STATE='clean'
           echo v${{ env.VERSION }}-ckp
